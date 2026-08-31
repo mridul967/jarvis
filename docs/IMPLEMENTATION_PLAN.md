@@ -1,5 +1,9 @@
 # Phase-wise implementation plan
 
+> This is the original high-level roadmap. The current, research-backed and
+> phase-gated solver plan is
+> [SOLVER_ENGINE_IMPLEMENTATION_PLAN.md](SOLVER_ENGINE_IMPLEMENTATION_PLAN.md).
+
 ## Goal and success criteria
 
 Build a reproducible VRPTW experimentation product that minimizes total travel

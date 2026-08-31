@@ -24,7 +24,10 @@ def test_solve_endpoint() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["algorithm"] == "qpso"
+    assert payload["algorithm_version"] == "1.0.0"
     assert payload["feasible"] is True
+    assert payload["score"]["hard_violations"] == 0
+    assert payload["convergence_points"][-1]["evaluations"] == payload["evaluations"]
     assert len({item for route in payload["routes"] for item in route}) == 10
 
 

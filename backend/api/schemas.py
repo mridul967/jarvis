@@ -19,16 +19,34 @@ class SolveParameters(BaseModel):
     seed: int
 
 
+class ScoreResponse(BaseModel):
+    hard_violations: int
+    coverage_errors: int
+    vehicles: int
+    lateness: float
+    travel_time: float
+    distance: float
+    congestion: float
+
+
+class ConvergencePointResponse(BaseModel):
+    evaluations: int
+    score: ScoreResponse
+
+
 class SolveResponse(BaseModel):
     id: int
     instance: str
     algorithm: Algorithm
+    algorithm_version: str
     distance: float
     vehicles: int
     feasible: bool
     violations: int
     routes: list[list[int]]
     convergence: list[float]
+    convergence_points: list[ConvergencePointResponse]
+    score: ScoreResponse
     evaluations: int
     runtime_ms: float
     parameters: SolveParameters
