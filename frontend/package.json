@@ -5,12 +5,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check-all": "bun run format:check && bun run lint && bun run typecheck && bun run build"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
     "next": "16.1.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "^22",
@@ -18,6 +25,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "prettier": "^3.6.0",
     "typescript": "^5"
   }
 }
