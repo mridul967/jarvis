@@ -24,7 +24,7 @@ def decode(instance: Instance, keys: np.ndarray) -> Evaluation:
     current: list[Customer] = []
 
     for customer in order:
-        if current and not _route_feasible(instance, current + [customer]):
+        if current and not _route_feasible(instance, [*current, customer]):
             routes.append(tuple(item.id for item in current))
             current = []
         current.append(customer)
@@ -34,7 +34,9 @@ def decode(instance: Instance, keys: np.ndarray) -> Evaluation:
     by_id = {customer.id: customer for customer in instance.customers}
     distance = sum(_route_distance(instance, [by_id[item] for item in route]) for route in routes)
     violations = max(0, len(routes) - instance.vehicle_count)
-    violations += sum(not _route_feasible(instance, [by_id[item] for item in route]) for route in routes)
+    violations += sum(
+        not _route_feasible(instance, [by_id[item] for item in route]) for route in routes
+    )
     return Evaluation(tuple(routes), round(distance, 3), int(violations))
 
 

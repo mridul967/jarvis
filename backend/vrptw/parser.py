@@ -12,9 +12,7 @@ def parse_solomon(text: str) -> Instance:
         (i for i, line in enumerate(lines) if "NUMBER" in line and "CAPACITY" in line),
         None,
     )
-    customer_index = next(
-        (i for i, line in enumerate(lines) if line.startswith("CUST NO.")), None
-    )
+    customer_index = next((i for i, line in enumerate(lines) if line.startswith("CUST NO.")), None)
     if vehicle_index is None or customer_index is None:
         raise ValueError("Expected Solomon VEHICLE and CUSTOMER sections")
 

@@ -10,9 +10,10 @@ This is a modular monolith with two deployable processes in one repository:
 
 ```text
 Browser -> Next.js App Router UI -> FastAPI /api/v1
-                                      |-> VRPTW parser + decoder
-                                      |-> PSO / QPSO solvers
-                                      `-> SQLite experiment runs
+                                      |-> api/routes (HTTP only)
+                                      |-> vrptw service + decoder
+                                      |-> optimizers (PSO / QPSO)
+                                      `-> runs repository -> SQLite
 ```
 
 The optimizer uses a random-keys representation: each particle is a continuous
@@ -65,4 +66,25 @@ Example request:
 
 ```json
 {"algorithm":"qpso","population_size":30,"iterations":80,"seed":42}
+```
+
+## Backend structure
+
+```text
+backend/
+  main.py             application factory, middleware, lifecycle, health
+  api/                versioned routers and Pydantic request/response schemas
+  core/               environment settings and SQLite connection lifecycle
+  optimizers/         algorithm mechanics without HTTP or persistence imports
+  vrptw/              Solomon parsing, route decoding, evaluation, solve service
+  runs/               experiment persistence repository
+tests/                 pure-domain and HTTP contract tests
+```
+
+Backend checks:
+
+```bash
+uv run ruff format --check .
+uv run ruff check .
+uv run pytest
 ```

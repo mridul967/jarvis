@@ -3,8 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.runs.db import initialize_database
-from backend.routes.api import router
+from backend.api.router import api_router
+from backend.core.config import settings
+from backend.core.database import check_database, initialize_database
 
 
 @asynccontextmanager
@@ -13,16 +14,25 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Anywhere Door API", version="0.1.0", lifespan=lifespan)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-app.include_router(router, prefix="/api/v1")
+def create_app() -> FastAPI:
+    application = FastAPI(
+        title="Anywhere Door API",
+        version="0.1.0",
+        lifespan=lifespan,
+    )
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(settings.allowed_origins),
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "Accept"],
+    )
+    application.include_router(api_router, prefix="/api/v1")
+
+    @application.get("/health", tags=["system"])
+    def health() -> dict[str, str]:
+        return {"status": "ok", "database": "ok" if check_database() else "error"}
+
+    return application
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+app = create_app()

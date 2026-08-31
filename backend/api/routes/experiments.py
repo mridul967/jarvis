@@ -1,29 +1,14 @@
-from typing import Literal
-
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
 
-from backend.runs.db import list_runs, save_run
+from backend.api.schemas import SolveRequest, SolveResponse
+from backend.runs.repository import save_run
 from backend.vrptw.sample import SAMPLE_SOLOMON
 from backend.vrptw.service import solve_text
 
-router = APIRouter()
+router = APIRouter(tags=["experiments"])
 
 
-class SolveRequest(BaseModel):
-    algorithm: Literal["pso", "qpso"] = "qpso"
-    population_size: int = Field(30, ge=5, le=200)
-    iterations: int = Field(80, ge=1, le=2_000)
-    seed: int = 42
-    instance: str | None = None
-
-
-@router.get("/instances/sample")
-def sample_instance() -> dict[str, str]:
-    return {"name": "C101-mini", "content": SAMPLE_SOLOMON}
-
-
-@router.post("/solve")
+@router.post("/solve", response_model=SolveResponse)
 def solve(request: SolveRequest) -> dict:
     try:
         result = solve_text(
@@ -37,8 +22,3 @@ def solve(request: SolveRequest) -> dict:
         raise HTTPException(status_code=422, detail=str(error)) from error
     result["id"] = save_run(result)
     return result
-
-
-@router.get("/runs")
-def runs() -> list[dict]:
-    return list_runs()
