@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from backend.datasets.model import CoordinateSystem, DatasetFormat
+
 Algorithm = Literal["pso", "qpso"]
 
 
@@ -65,3 +67,61 @@ class RunSummary(BaseModel):
 class InstanceResponse(BaseModel):
     name: str
     content: str
+
+
+class DatasetImportRequest(BaseModel):
+    format: DatasetFormat
+    filename: str = Field(min_length=1, max_length=255)
+    content: str = Field(max_length=5_000_000)
+    family: str = Field(min_length=1, max_length=100)
+    source_url: str | None = Field(default=None, max_length=2_000)
+    license: str | None = Field(default=None, max_length=200)
+    attribution: str | None = Field(default=None, max_length=2_000)
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    media_type: str = Field(default="text/plain", min_length=1, max_length=100)
+    vehicle_count: int | None = Field(default=None, gt=0)
+    capacity: int | None = Field(default=None, gt=0)
+    depot_id: int | None = Field(default=None, ge=0)
+    coordinate_system: CoordinateSystem | None = None
+    distance_unit: str | None = Field(default=None, min_length=1, max_length=100)
+    time_unit: str | None = Field(default=None, min_length=1, max_length=100)
+    timezone: str | None = Field(default=None, min_length=1, max_length=100)
+
+
+class DatasetValidationResponse(BaseModel):
+    valid: bool
+    errors: list[str]
+    name: str | None = None
+    vehicle_count: int | None = None
+    customer_count: int | None = None
+    canonical_sha256: str | None = None
+
+
+class DatasetVersionResponse(BaseModel):
+    version_id: str
+    created_at: str
+    name: str
+    family: str
+    format: DatasetFormat
+    source_type: str
+    source_url: str | None
+    license: str | None
+    attribution: str | None
+    original_filename: str
+    media_type: str
+    original_size: int
+    original_sha256: str
+    canonical_sha256: str
+    parser_name: str
+    parser_version: str
+    coordinate_system: CoordinateSystem
+    distance_unit: str
+    time_unit: str
+    timezone: str | None
+    vehicle_count: int
+    customer_count: int
+    original_artifact: str
+    canonical_artifact: str
+    validation_status: str
+    validation_errors: list[str]
+    import_options: dict[str, int | str | None]

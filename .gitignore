@@ -8,3 +8,6 @@ frontend/.next/
 frontend/.env.local
 frontend/tsconfig.tsbuildinfo
 .agents/
+data/inbox/*
+!data/inbox/README.md
+data/artifacts/

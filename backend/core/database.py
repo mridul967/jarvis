@@ -33,6 +33,45 @@ def initialize_database() -> None:
                 payload TEXT NOT NULL
             )"""
         )
+        database.execute(
+            """CREATE TABLE IF NOT EXISTS dataset_versions (
+                version_id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                name TEXT NOT NULL,
+                family TEXT NOT NULL,
+                format TEXT NOT NULL CHECK (
+                    format IN ('solomon_text', 'solomon_csv', 'canonical_json')
+                ),
+                source_type TEXT NOT NULL CHECK (source_type IN ('url', 'user_upload')),
+                source_url TEXT,
+                license TEXT,
+                attribution TEXT,
+                original_filename TEXT NOT NULL,
+                media_type TEXT NOT NULL,
+                original_size INTEGER NOT NULL CHECK (original_size >= 0),
+                original_sha256 TEXT NOT NULL,
+                canonical_sha256 TEXT NOT NULL,
+                parser_name TEXT NOT NULL,
+                parser_version TEXT NOT NULL,
+                coordinate_system TEXT NOT NULL CHECK (
+                    coordinate_system IN ('euclidean', 'wgs84')
+                ),
+                distance_unit TEXT NOT NULL,
+                time_unit TEXT NOT NULL,
+                timezone TEXT,
+                vehicle_count INTEGER NOT NULL CHECK (vehicle_count > 0),
+                customer_count INTEGER NOT NULL CHECK (customer_count > 0),
+                original_artifact TEXT NOT NULL,
+                canonical_artifact TEXT NOT NULL,
+                validation_status TEXT NOT NULL CHECK (validation_status = 'valid'),
+                validation_errors TEXT NOT NULL,
+                import_options TEXT NOT NULL
+            )"""
+        )
+        database.execute(
+            """CREATE INDEX IF NOT EXISTS dataset_versions_created_at
+               ON dataset_versions(created_at DESC)"""
+        )
 
 
 def check_database() -> bool:

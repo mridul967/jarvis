@@ -7,6 +7,7 @@ from pathlib import Path
 class Settings:
     environment: str
     database_path: Path
+    artifact_root: Path
     allowed_origins: tuple[str, ...]
 
 
@@ -19,6 +20,7 @@ def load_settings() -> Settings:
     return Settings(
         environment=os.getenv("ENVIRONMENT", "development"),
         database_path=Path(os.getenv("DATABASE_PATH", "anywhere-door.db")),
+        artifact_root=Path(os.getenv("ARTIFACT_ROOT", "data/artifacts")),
         allowed_origins=origins or ("http://localhost:3000",),
     )
 

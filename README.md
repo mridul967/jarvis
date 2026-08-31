@@ -11,6 +11,7 @@ This is a modular monolith with two deployable processes in one repository:
 ```text
 Browser -> Next.js App Router UI -> FastAPI /api/v1
                                       |-> api/routes (HTTP only)
+                                      |-> datasets -> artifacts + SQLite metadata
                                       |-> vrptw service + decoder
                                       |-> optimizers (PSO / QPSO)
                                       `-> runs repository -> SQLite
@@ -47,10 +48,21 @@ uv run pytest
 cd frontend && bun run lint && bun run build
 ```
 
+## Import benchmark datasets
+
+Download and extract the Solomon and Gehring-Homberger archives as described in
+[data/inbox/README.md](data/inbox/README.md). Then run:
+
+```bash
+uv run python -m backend.tools.import_datasets data/inbox/Solomon_Instances --family solomon
+uv run python -m backend.tools.import_datasets data/inbox/Gehring_Homberger_Instances --family homberger
+```
+
 ## Current scope
 
-- Included: Solomon parser, embedded demo instance, PSO, QPSO, deterministic
-  feasibility evaluation, run persistence, comparison UI.
+- Included: strict Solomon text/CSV/canonical JSON import, immutable dataset
+  versions, embedded demo instance, PSO, QPSO, deterministic feasibility
+  evaluation, run persistence, comparison UI.
 - Deferred: ACO/QACO, dynamic traffic ingestion, Supabase mirroring,
   background workers, authentication, QAOA/RL, maps. Add these only after the
   baseline benchmark is reproducible.
@@ -59,6 +71,10 @@ cd frontend && bun run lint && bun run build
 
 - `GET /health`
 - `GET /api/v1/instances/sample`
+- `POST /api/v1/datasets/validate`
+- `POST /api/v1/datasets`
+- `GET /api/v1/datasets`
+- `GET /api/v1/datasets/{version_id}`
 - `POST /api/v1/solve`
 - `GET /api/v1/runs`
 
@@ -75,6 +91,7 @@ backend/
   main.py             application factory, middleware, lifecycle, health
   api/                versioned routers and Pydantic request/response schemas
   core/               environment settings and SQLite connection lifecycle
+  datasets/           strict importers, immutable artifacts, version metadata
   optimizers/         algorithm mechanics without HTTP or persistence imports
   vrptw/              Solomon parsing, route decoding, evaluation, solve service
   runs/               experiment persistence repository

@@ -333,6 +333,8 @@ deferred work. Do not start data ingestion until accepted.
 
 ## 7. Phase 2 — immutable dataset registry and strict importers
 
+**Status: complete.**
+
 ### Goal
 
 Admit manually downloaded Kaggle/Solomon and custom datasets without guessing
@@ -1019,4 +1021,3 @@ screens during Phase 1. Their correctness depends on this foundation.
   <https://giscience.github.io/openrouteservice/technical-details/travel-speeds/>
 - Official ORS/OSM data-source documentation:
   <https://giscience.github.io/openrouteservice/run-instance/data>
-
