@@ -398,6 +398,8 @@ explain normalization and provenance.
 
 ## 8. Phase 3 — OSM/ORS snapshots and traffic models
 
+**Status: complete.**
+
 ### Goal
 
 Create immutable road-cost snapshots and expose static, exogenous, endogenous,

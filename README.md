@@ -12,6 +12,8 @@ This is a modular monolith with two deployable processes in one repository:
 Browser -> Next.js App Router UI -> FastAPI /api/v1
                                       |-> api/routes (HTTP only)
                                       |-> datasets -> artifacts + SQLite metadata
+                                      |-> networks -> ORS cost snapshots
+                                      |-> traffic -> explicit scenarios + BPR costs
                                       |-> vrptw service + decoder
                                       |-> optimizers (PSO / QPSO)
                                       `-> runs repository -> SQLite
@@ -27,7 +29,9 @@ claiming a quantum hardware advantage.
 
 ```bash
 uv sync
-uv run uvicorn backend.main:app --reload
+cp .env.example .env
+# Add ORS_API_KEY to .env, then:
+uv run uvicorn backend.main:app --reload --env-file .env
 ```
 
 In a second terminal:
@@ -61,11 +65,17 @@ uv run python -m backend.tools.import_datasets data/inbox/Gehring_Homberger_Inst
 ## Current scope
 
 - Included: strict Solomon text/CSV/canonical JSON import, immutable dataset
-  versions, embedded demo instance, PSO, QPSO, deterministic feasibility
-  evaluation, run persistence, comparison UI.
-- Deferred: ACO/QACO, dynamic traffic ingestion, Supabase mirroring,
+  versions, immutable ORS distance/duration snapshots, explicit traffic
+  scenarios, bounded BPR assignment, embedded demo instance, PSO, QPSO,
+  deterministic feasibility evaluation, run persistence, comparison UI.
+- Deferred: ACO/QACO, live traffic-provider integration, Supabase mirroring,
   background workers, authentication, QAOA/RL, maps. Add these only after the
   baseline benchmark is reproducible.
+
+ORS supplies static road-network distances and durations, not live traffic.
+Traffic scenarios must therefore be labelled `simulated`, `historical_replay`,
+or `live` according to their actual external source. No unreachable ORS pair is
+replaced by Euclidean distance.
 
 ## API
 
@@ -75,6 +85,13 @@ uv run python -m backend.tools.import_datasets data/inbox/Gehring_Homberger_Inst
 - `POST /api/v1/datasets`
 - `GET /api/v1/datasets`
 - `GET /api/v1/datasets/{version_id}`
+- `POST /api/v1/cost-snapshots`
+- `GET /api/v1/cost-snapshots`
+- `GET /api/v1/cost-snapshots/{snapshot_id}`
+- `POST /api/v1/traffic/scenarios/validate`
+- `POST /api/v1/traffic/scenarios`
+- `GET /api/v1/traffic/scenarios`
+- `GET /api/v1/traffic/scenarios/{scenario_id}`
 - `POST /api/v1/solve`
 - `GET /api/v1/runs`
 
@@ -92,6 +109,8 @@ backend/
   api/                versioned routers and Pydantic request/response schemas
   core/               environment settings and SQLite connection lifecycle
   datasets/           strict importers, immutable artifacts, version metadata
+  networks/           ORS client, block assembly, immutable cost snapshots
+  traffic/            exogenous intervals, BPR costs, bounded assignment
   optimizers/         algorithm mechanics without HTTP or persistence imports
   vrptw/              Solomon parsing, route decoding, evaluation, solve service
   runs/               experiment persistence repository

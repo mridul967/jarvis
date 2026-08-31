@@ -34,4 +34,15 @@ The command validates every instance, stores immutable content-addressed files u
 status means at least one file was rejected; failures are reported and are not silently repaired.
 
 These are Euclidean benchmark instances, not geographic road-network coordinates. OSM/ORS data
-will be ingested separately in a later phase as WGS84 graph and travel-time artifacts.
+is ingested separately as WGS84 graph and travel-time artifacts.
+
+For OSM/ORS routing, import a `canonical_json` dataset through `/api/v1/datasets` with:
+
+- `coordinate_system` set to `wgs84`;
+- every coordinate ordered as `[longitude, latitude]` (`x=longitude`, `y=latitude`);
+- `distance_unit` set to `metres` and `time_unit` set to `seconds`;
+- an explicit IANA timezone such as `Asia/Kolkata`;
+- depot, customer, and fleet fields required by schema version `1`.
+
+You do not manually place ORS responses in this folder. The backend creates credential-free,
+content-addressed snapshots in `data/artifacts/` through `POST /api/v1/cost-snapshots`.

@@ -1,10 +1,7 @@
-import hashlib
 import json
-import os
-import tempfile
 from pathlib import Path
 
-from backend.core.config import settings
+from backend.core.artifacts import sha256, write_artifact
 from backend.datasets.importers import parse_dataset
 from backend.datasets.model import DatasetImport, DatasetVersion, ParsedDataset
 from backend.datasets.repository import save_dataset
@@ -21,8 +18,8 @@ def import_dataset(request: DatasetImport) -> DatasetVersion:
     parsed = validate_import(request)
     original = request.content.encode("utf-8")
     canonical = parsed.canonical_json.encode("utf-8")
-    original_sha256 = _digest(original)
-    canonical_sha256 = _digest(canonical)
+    original_sha256 = sha256(original)
+    canonical_sha256 = sha256(canonical)
     options: dict[str, int | str | None] = {
         "vehicle_count": request.vehicle_count,
         "capacity": request.capacity,
@@ -47,11 +44,9 @@ def import_dataset(request: DatasetImport) -> DatasetVersion:
         "source_url": request.source_url,
         "options": options,
     }
-    version_id = _digest(
-        json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    )
-    original_artifact = _write_artifact(original, original_sha256)
-    canonical_artifact = _write_artifact(canonical, canonical_sha256)
+    version_id = sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    original_artifact, _ = write_artifact(original)
+    canonical_artifact, _ = write_artifact(canonical)
     return save_dataset(
         DatasetVersion(
             version_id=version_id,
@@ -94,25 +89,3 @@ def _validate_request(request: DatasetImport) -> None:
         raise ValueError("family is required")
     if len(request.content.encode("utf-8")) > MAX_DATASET_BYTES:
         raise ValueError(f"Dataset exceeds the {MAX_DATASET_BYTES}-byte import limit")
-
-
-def _write_artifact(content: bytes, digest: str) -> str:
-    relative = Path("sha256") / digest[:2] / digest
-    target = settings.artifact_root / relative
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists():
-        if _digest(target.read_bytes()) != digest:
-            raise RuntimeError(f"Artifact checksum mismatch: {relative}")
-        return relative.as_posix()
-    with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as temporary:
-        temporary.write(content)
-        temporary_path = Path(temporary.name)
-    try:
-        os.replace(temporary_path, target)
-    finally:
-        temporary_path.unlink(missing_ok=True)
-    return relative.as_posix()
-
-
-def _digest(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()

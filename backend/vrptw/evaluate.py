@@ -1,5 +1,7 @@
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 import numpy as np
 
@@ -28,10 +30,33 @@ class RouteEvaluation:
 
 
 @dataclass(frozen=True)
+class Traversal:
+    vehicle_id: int
+    origin: int
+    destination: int
+    departure: float
+    arrival: float
+
+
+class TravelCosts(Protocol):
+    def distance(self, origin: int, destination: int) -> float: ...
+
+    def travel_time(
+        self, origin: int, destination: int, departure: float, flow: float = 0.0
+    ) -> float: ...
+
+    def base_travel_time(self, origin: int, destination: int) -> float: ...
+
+
+FlowResolver = Callable[[int, int, float], float]
+
+
+@dataclass(frozen=True)
 class Evaluation:
     solution: Solution
     score: Score
     route_evaluations: tuple[RouteEvaluation, ...]
+    traversals: tuple[Traversal, ...] = ()
 
     @property
     def feasible(self) -> bool:
@@ -89,7 +114,12 @@ def objective(problem: Problem, keys: np.ndarray) -> Score:
     return decode(problem, keys).score
 
 
-def validate_solution(problem: Problem, solution: Solution) -> Evaluation:
+def validate_solution(
+    problem: Problem,
+    solution: Solution,
+    costs: TravelCosts | None = None,
+    flow_for: FlowResolver | None = None,
+) -> Evaluation:
     customers = {customer.id: customer for customer in problem.customers}
     vehicles = {vehicle.id: vehicle for vehicle in problem.vehicles}
     visits = Counter(customer_id for route in solution.routes for customer_id in route.customers)
@@ -101,6 +131,7 @@ def validate_solution(problem: Problem, solution: Solution) -> Evaluation:
     coverage_errors = missing + duplicates + unknown
 
     route_evaluations: list[RouteEvaluation] = []
+    traversals: list[Traversal] = []
     seen_vehicles: set[int] = set()
     extra_hard_violations = 0
     for route in solution.routes:
@@ -109,7 +140,11 @@ def validate_solution(problem: Problem, solution: Solution) -> Evaluation:
             extra_hard_violations += 1
         else:
             seen_vehicles.add(route.vehicle_id)
-        route_evaluations.append(_evaluate_route(problem, vehicle, route, customers))
+        route_evaluation, route_traversals = _trace_route(
+            problem, vehicle, route, customers, costs, flow_for
+        )
+        route_evaluations.append(route_evaluation)
+        traversals.extend(route_traversals)
 
     hard_violations = extra_hard_violations + sum(
         route.hard_violations for route in route_evaluations
@@ -121,8 +156,18 @@ def validate_solution(problem: Problem, solution: Solution) -> Evaluation:
         lateness=sum(route.lateness for route in route_evaluations),
         travel_time=sum(route.travel_time for route in route_evaluations),
         distance=sum(route.distance for route in route_evaluations),
+        congestion=sum(
+            max(
+                0.0,
+                (traversal.arrival - traversal.departure)
+                - costs.base_travel_time(traversal.origin, traversal.destination),
+            )
+            for traversal in traversals
+        )
+        if costs
+        else 0.0,
     )
-    return Evaluation(solution, score, tuple(route_evaluations))
+    return Evaluation(solution, score, tuple(route_evaluations), tuple(traversals))
 
 
 def _evaluate_route(
@@ -131,6 +176,17 @@ def _evaluate_route(
     route: Route,
     customers: dict[int, Customer],
 ) -> RouteEvaluation:
+    return _trace_route(problem, vehicle, route, customers, None, None)[0]
+
+
+def _trace_route(
+    problem: Problem,
+    vehicle: Vehicle | None,
+    route: Route,
+    customers: dict[int, Customer],
+    costs: TravelCosts | None,
+    flow_for: FlowResolver | None,
+) -> tuple[RouteEvaluation, tuple[Traversal, ...]]:
     time = max(problem.depot.ready, vehicle.shift_start) if vehicle else problem.depot.ready
     previous: Customer = problem.depot
     distance = 0.0
@@ -138,27 +194,59 @@ def _evaluate_route(
     lateness = 0.0
     load = 0
     hard_violations = 0
+    traversals: list[Traversal] = []
+    served = False
 
     for customer_id in route.customers:
         customer = customers.get(customer_id)
         if customer is None:
             continue
-        leg = problem.distance(previous, customer)
-        arrival = time + leg
+        served = True
+        departure = time
+        flow = flow_for(previous.id, customer.id, departure) if flow_for else 0.0
+        leg_time = (
+            costs.travel_time(previous.id, customer.id, departure, flow)
+            if costs
+            else problem.distance(previous, customer)
+        )
+        leg_distance = (
+            costs.distance(previous.id, customer.id)
+            if costs
+            else problem.distance(previous, customer)
+        )
+        arrival = departure + leg_time
         service_start = max(arrival, customer.ready)
         customer_lateness = max(0.0, service_start - customer.due)
         hard_violations += int(customer_lateness > 0)
         lateness += customer_lateness
-        distance += leg
-        travel_time += leg
+        distance += leg_distance
+        travel_time += leg_time
         load += customer.demand
         time = service_start + customer.service
+        traversals.append(Traversal(route.vehicle_id, previous.id, customer.id, departure, arrival))
         previous = customer
 
-    return_leg = problem.distance(previous, problem.depot)
-    distance += return_leg
-    travel_time += return_leg
-    return_time = time + return_leg
+    if not served:
+        return RouteEvaluation(route.vehicle_id, 0, 0.0, 0.0, 0.0, hard_violations), ()
+
+    departure = time
+    flow = flow_for(previous.id, problem.depot.id, departure) if flow_for else 0.0
+    return_time_value = (
+        costs.travel_time(previous.id, problem.depot.id, departure, flow)
+        if costs
+        else problem.distance(previous, problem.depot)
+    )
+    return_distance = (
+        costs.distance(previous.id, problem.depot.id)
+        if costs
+        else problem.distance(previous, problem.depot)
+    )
+    distance += return_distance
+    travel_time += return_time_value
+    return_time = departure + return_time_value
+    traversals.append(
+        Traversal(route.vehicle_id, previous.id, problem.depot.id, departure, return_time)
+    )
     if vehicle:
         hard_violations += int(load > vehicle.capacity)
         latest_return = min(problem.depot.due, vehicle.shift_end)
@@ -166,11 +254,14 @@ def _evaluate_route(
         hard_violations += int(return_lateness > 0)
         lateness += return_lateness
 
-    return RouteEvaluation(
-        vehicle_id=route.vehicle_id,
-        load=load,
-        distance=distance,
-        travel_time=travel_time,
-        lateness=lateness,
-        hard_violations=hard_violations,
+    return (
+        RouteEvaluation(
+            vehicle_id=route.vehicle_id,
+            load=load,
+            distance=distance,
+            travel_time=travel_time,
+            lateness=lateness,
+            hard_violations=hard_violations,
+        ),
+        tuple(traversals),
     )

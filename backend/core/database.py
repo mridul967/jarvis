@@ -72,6 +72,41 @@ def initialize_database() -> None:
             """CREATE INDEX IF NOT EXISTS dataset_versions_created_at
                ON dataset_versions(created_at DESC)"""
         )
+        database.execute(
+            """CREATE TABLE IF NOT EXISTS cost_snapshots (
+                snapshot_id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                dataset_version_id TEXT NOT NULL,
+                profile TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                provider_url TEXT NOT NULL,
+                attribution TEXT NOT NULL,
+                request_sha256 TEXT NOT NULL,
+                raw_sha256 TEXT NOT NULL,
+                normalized_sha256 TEXT NOT NULL,
+                raw_artifact TEXT NOT NULL,
+                normalized_artifact TEXT NOT NULL,
+                node_count INTEGER NOT NULL CHECK (node_count > 1),
+                block_count INTEGER NOT NULL CHECK (block_count > 0),
+                unreachable_count INTEGER NOT NULL CHECK (unreachable_count >= 0),
+                request_json TEXT NOT NULL,
+                FOREIGN KEY (dataset_version_id) REFERENCES dataset_versions(version_id)
+            )"""
+        )
+        database.execute(
+            """CREATE INDEX IF NOT EXISTS cost_snapshots_created_at
+               ON cost_snapshots(created_at DESC)"""
+        )
+        database.execute(
+            """CREATE TABLE IF NOT EXISTS traffic_scenarios (
+                scenario_id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                name TEXT NOT NULL,
+                mode TEXT NOT NULL CHECK (mode IN ('exogenous', 'endogenous', 'combined')),
+                content_sha256 TEXT NOT NULL,
+                artifact TEXT NOT NULL
+            )"""
+        )
 
 
 def check_database() -> bool:

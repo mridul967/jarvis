@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+import backend.core.artifacts as artifacts_module
 import backend.core.database as database_module
-import backend.datasets.service as dataset_service
 from backend.core.config import Settings
 from backend.datasets.importers import parse_dataset
 from backend.datasets.model import DatasetImport
@@ -26,7 +26,7 @@ def isolated_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Setting
         allowed_origins=("http://localhost:3000",),
     )
     monkeypatch.setattr(database_module, "settings", settings)
-    monkeypatch.setattr(dataset_service, "settings", settings)
+    monkeypatch.setattr(artifacts_module, "settings", settings)
     return settings
 
 

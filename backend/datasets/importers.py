@@ -196,21 +196,22 @@ def _validate_admission(parsed: ParsedDataset) -> None:
         for node in (problem.depot, *problem.customers):
             if not -180 <= node.x <= 180 or not -90 <= node.y <= 90:
                 raise ValueError("WGS84 coordinates must be [longitude, latitude]")
-    impossible = []
-    for customer in problem.customers:
-        if not any(
-            validate_solution(
-                problem,
-                Solution((Route(vehicle.id, (customer.id,)),)),
-            )
-            .route_evaluations[0]
-            .hard_violations
-            == 0
-            for vehicle in problem.vehicles
-        ):
-            impossible.append(customer.id)
-    if impossible:
-        raise ValueError(f"Customers impossible to serve alone: {impossible}")
+    if parsed.coordinate_system == "euclidean":
+        impossible = []
+        for customer in problem.customers:
+            if not any(
+                validate_solution(
+                    problem,
+                    Solution((Route(vehicle.id, (customer.id,)),)),
+                )
+                .route_evaluations[0]
+                .hard_violations
+                == 0
+                for vehicle in problem.vehicles
+            ):
+                impossible.append(customer.id)
+        if impossible:
+            raise ValueError(f"Customers impossible to serve alone: {impossible}")
 
 
 def _csv_headers(fieldnames: list[str]) -> dict[str, str]:
