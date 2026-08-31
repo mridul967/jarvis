@@ -1,7 +1,17 @@
 [project]
 name = "anywhere-door"
 version = "0.1.0"
-description = "Add your description here"
+description = "Quantum-inspired VRPTW optimization workbench"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = []
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.116",
+    "numpy>=2.2",
+    "uvicorn[standard]>=0.35",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.4", "httpx>=0.28"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

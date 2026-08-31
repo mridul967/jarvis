@@ -1,0 +1,68 @@
+# Anywhere Door
+
+An executable baseline for SIH 26137: compare classical PSO and
+quantum-behaved PSO (QPSO) on Solomon-style vehicle-routing problems with time
+windows (VRPTW).
+
+## Architecture
+
+This is a modular monolith with two deployable processes in one repository:
+
+```text
+Browser -> Next.js App Router UI -> FastAPI /api/v1
+                                      |-> VRPTW parser + decoder
+                                      |-> PSO / QPSO solvers
+                                      `-> SQLite experiment runs
+```
+
+The optimizer uses a random-keys representation: each particle is a continuous
+vector, sorting its values produces a customer permutation, and a deterministic
+splitter constructs capacity- and time-window-feasible routes. This lets the
+supplied continuous PSO/QPSO equations solve a discrete routing problem without
+claiming a quantum hardware advantage.
+
+## Run locally
+
+```bash
+uv sync
+uv run uvicorn backend.main:app --reload
+```
+
+In a second terminal:
+
+```bash
+cd frontend
+bun install
+bun run dev
+```
+
+Open http://localhost:3000. API documentation is at
+http://localhost:8000/docs.
+
+## Verify
+
+```bash
+uv run pytest
+cd frontend && bun run lint && bun run build
+```
+
+## Current scope
+
+- Included: Solomon parser, embedded demo instance, PSO, QPSO, deterministic
+  feasibility evaluation, run persistence, comparison UI.
+- Deferred: ACO/QACO, dynamic traffic ingestion, Supabase mirroring,
+  background workers, authentication, QAOA/RL, maps. Add these only after the
+  baseline benchmark is reproducible.
+
+## API
+
+- `GET /health`
+- `GET /api/v1/instances/sample`
+- `POST /api/v1/solve`
+- `GET /api/v1/runs`
+
+Example request:
+
+```json
+{"algorithm":"qpso","population_size":30,"iterations":80,"seed":42}
+```
