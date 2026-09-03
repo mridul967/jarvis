@@ -5,9 +5,13 @@ description = "Quantum-inspired VRPTW optimization workbench"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dimod>=0.12.22",
     "fastapi>=0.116",
     "numpy>=2.2",
+    "simulated-bifurcation>=2.0.0",
+    "torch>=2.14.0",
     "uvicorn[standard]>=0.35",
+    "ortools>=9.8.0"
 ]
 
 [dependency-groups]
