@@ -14,3 +14,5 @@ data/inbox/*
 !data/inbox/README.md
 data/artifacts/
 ADMR_QPSO_VND_IMPLEMENTATION_SPEC.md
+jarvis-frontend-main/
+autogenerate
