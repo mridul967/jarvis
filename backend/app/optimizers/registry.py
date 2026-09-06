@@ -2,17 +2,19 @@ from collections.abc import Callable
 from time import perf_counter
 from typing import Literal
 
-from backend.optimizers.model import (
+from backend.app.optimizers.model import (
     CancelCheck,
     EvaluationBudget,
     SolverParameters,
     SolverResult,
 )
-from backend.optimizers.swarm import optimize
+from backend.app.optimizers.swarm import optimize
 from backend.vrptw.evaluate import decode_solution, objective, validate_solution
 from backend.vrptw.model import Problem, Solution
+from backend.app.optimizers.sbm import solve_sbm
 
-Algorithm = Literal["pso", "qpso"]
+
+Algorithm = Literal["pso", "qpso", "sbm"]
 Solver = Callable[
     [Problem, SolverParameters, int, EvaluationBudget, Solution | None, CancelCheck | None],
     SolverResult,
@@ -78,7 +80,7 @@ def solve_qpso(
     return _solve_swarm("qpso", problem, parameters, seed, budget, warm_start, should_cancel)
 
 
-SOLVERS: dict[Algorithm, Solver] = {"pso": solve_pso, "qpso": solve_qpso}
+SOLVERS: dict[Algorithm, Solver] = {"pso": solve_pso, "qpso": solve_qpso, "sbm": solve_sbm}
 
 
 def get_solver(algorithm: Algorithm) -> Solver:
