@@ -22,6 +22,7 @@ def _gat_module():
 
 # ---- Request / Response schemas -----------------------------------------
 
+
 class GATInferRequest(BaseModel):
     """
     Graph data + inference mode.
@@ -52,6 +53,7 @@ class GATInferResponse(BaseModel):
 
 
 # ---- Endpoints ----------------------------------------------------------
+
 
 @router.post("/infer", response_model=GATInferResponse)
 def infer(req: GATInferRequest) -> GATInferResponse:

@@ -23,10 +23,10 @@ import torch.nn.functional as F
 from torch_geometric.nn import GATv2Conv
 from torch_geometric.utils import from_networkx
 
-
 # --------------------------------------------------------------------------
 # Shared encoder
 # --------------------------------------------------------------------------
+
 
 class GATEncoder(nn.Module):
     """Attention-based node encoder shared by both heads below."""
@@ -57,6 +57,7 @@ class GATEncoder(nn.Module):
 # --------------------------------------------------------------------------
 # Head 1: search-space reduction for QPSO / QACO
 # --------------------------------------------------------------------------
+
 
 class SearchSpaceGAT(nn.Module):
     def __init__(self, node_feat_dim, edge_feat_dim, hidden_dim=64, heads=4, layers=2):
@@ -91,6 +92,7 @@ class SearchSpaceGAT(nn.Module):
 # Head 2: edge-weight prediction for the NetworkX directed graph
 # --------------------------------------------------------------------------
 
+
 class EdgeWeightGAT(nn.Module):
     def __init__(self, node_feat_dim, edge_feat_dim, hidden_dim=64, heads=4, layers=2):
         super().__init__()
@@ -112,6 +114,7 @@ class EdgeWeightGAT(nn.Module):
 # Training -- one generic loop, both heads are plain supervised learning
 # (no QPSO/QACO/RL signal involved either way)
 # --------------------------------------------------------------------------
+
 
 def train_gat(model, data_list, label_attr, loss_fn, epochs=50, lr=1e-3, device="cpu"):
     """
@@ -146,11 +149,14 @@ def train_gat(model, data_list, label_attr, loss_fn, epochs=50, lr=1e-3, device=
 # NetworkX bridge
 # --------------------------------------------------------------------------
 
+
 def networkx_to_pyg(nx_graph, node_feature_keys, edge_feature_keys):
     """Thin wrapper -- from_networkx already does the conversion, no
     reason to hand-roll it. Returns (Data, edge_list) where edge_list
     is in the same column order as data.edge_index."""
-    data = from_networkx(nx_graph, group_node_attrs=node_feature_keys, group_edge_attrs=edge_feature_keys)
+    data = from_networkx(
+        nx_graph, group_node_attrs=node_feature_keys, group_edge_attrs=edge_feature_keys
+    )
     edge_list = list(nx_graph.edges())
     return data, edge_list
 
@@ -163,7 +169,7 @@ def build_weighted_digraph(base_graph, model, x, edge_index, edge_attr, edge_lis
     with torch.no_grad():
         weights = model(x, edge_index, edge_attr).cpu().numpy()
     G = base_graph.copy()
-    for (u, v), w in zip(edge_list, weights):
+    for (u, v), w in zip(edge_list, weights, strict=True):
         G[u][v]["weight"] = float(w)
         G[u][v]["gat_predicted"] = True
     return G
@@ -197,12 +203,16 @@ if __name__ == "__main__":
 
     ss_model = SearchSpaceGAT(node_feat_dim=len(NODE_FEATS), edge_feat_dim=len(EDGE_FEATS))
     train_gat(ss_model, [data], "edge_label", nn.BCELoss(), epochs=5)
-    reduced, scores = ss_model.reduced_search_space(data.x, data.edge_index, data.edge_attr, top_k=2)
+    reduced, scores = ss_model.reduced_search_space(
+        data.x, data.edge_index, data.edge_attr, top_k=2
+    )
     print("reduced search space (node -> top edges):", reduced)
 
     w_model = EdgeWeightGAT(node_feat_dim=len(NODE_FEATS), edge_feat_dim=len(EDGE_FEATS))
     train_gat(w_model, [data], "edge_target", nn.HuberLoss(), epochs=5)
-    G_weighted = build_weighted_digraph(G, w_model, data.x, data.edge_index, data.edge_attr, edge_list)
+    G_weighted = build_weighted_digraph(
+        G, w_model, data.x, data.edge_index, data.edge_attr, edge_list
+    )
     print("predicted weights:", nx.get_edge_attributes(G_weighted, "weight"))
 
     print("OK -- both models run end to end on the toy graph.")

@@ -83,7 +83,7 @@ export function DecisionTimeline({ events }: DecisionTimelineProps) {
 
       <div className="pt-2 border-t border-hairline">
         <p className="text-[11px] font-mono text-text-secondary">
-          Future backend integration: animate the selected route and candidate path directly on the NetworkX graph viewport.
+          Routes shown above are expanded across NetworkX shortest-path edges and revalidated after optimization.
         </p>
       </div>
     </div>

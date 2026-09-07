@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  --font-space-grotesk: "Avenir Next", "Segoe UI", sans-serif;
+  --font-ibm-plex-sans: Inter, system-ui, sans-serif;
+  --font-ibm-plex-mono: "SFMono-Regular", Consolas, monospace;
   --ink-base: #14171C;
   --ink-panel: #1B1F26;
   --ink-panel-raised: #20242C;

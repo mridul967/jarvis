@@ -28,11 +28,18 @@ def optimize(
     seed: int,
     budget: EvaluationBudget,
     should_cancel: CancelCheck | None = None,
+    initial_positions: np.ndarray | None = None,
 ) -> SwarmResult:
     if budget.max_evaluations < population_size:
         raise ValueError("Evaluation budget must cover the initial population")
     rng = np.random.default_rng(seed)
     positions = rng.random((population_size, dimension))
+    if initial_positions is not None:
+        seeds = np.asarray(initial_positions, dtype=float)
+        if seeds.ndim != 2 or seeds.shape[1] != dimension:
+            raise ValueError("Initial positions must have shape (n, dimension)")
+        count = min(population_size, len(seeds))
+        positions[:count] = np.clip(seeds[:count], 0, 1)
     personal_best = positions.copy()
     personal_fitness = [objective(item) for item in positions]
     evaluations = population_size

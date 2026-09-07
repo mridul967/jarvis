@@ -11,7 +11,7 @@ Upgrade path: wrap in a proper model registry if multi-model versioning is added
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -20,8 +20,8 @@ import torch
 from backend.app.gat.models import EdgeWeightGAT, SearchSpaceGAT
 
 # Default feature dimensions match the spec self-check and the Colab notebook.
-_NODE_FEAT_DIM = 3   # lat, lon, degree
-_EDGE_FEAT_DIM = 3   # length, speed_limit, lanes
+_NODE_FEAT_DIM = 3  # lat, lon, degree
+_EDGE_FEAT_DIM = 3  # length, speed_limit, lanes
 
 _SS_CKPT = Path("data/artifacts/gat_checkpoints/search_space_gat.pt")
 _EW_CKPT = Path("data/artifacts/gat_checkpoints/edge_weight_gat.pt")
@@ -52,7 +52,8 @@ def _get_ss() -> _ModelState:
     global _ss
     if _ss is None:
         _ss = _load(
-            SearchSpaceGAT, _SS_CKPT,
+            SearchSpaceGAT,
+            _SS_CKPT,
             node_feat_dim=_NODE_FEAT_DIM,
             edge_feat_dim=_EDGE_FEAT_DIM,
         )
@@ -63,7 +64,8 @@ def _get_ew() -> _ModelState:
     global _ew
     if _ew is None:
         _ew = _load(
-            EdgeWeightGAT, _EW_CKPT,
+            EdgeWeightGAT,
+            _EW_CKPT,
             node_feat_dim=_NODE_FEAT_DIM,
             edge_feat_dim=_EDGE_FEAT_DIM,
         )
@@ -116,8 +118,7 @@ def infer(
         result["edge_scores"] = scores.tolist()
         # Convert int keys to str for JSON serialisation
         result["reduced_search_space"] = {
-            str(u): [(dst, sc, idx) for dst, sc, idx in edges]
-            for u, edges in reduced.items()
+            str(u): [(dst, sc, idx) for dst, sc, idx in edges] for u, edges in reduced.items()
         }
         result["search_space_trained"] = state.trained
         result["search_space_confidence"] = 1.0 if state.trained else 0.0

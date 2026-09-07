@@ -15,6 +15,22 @@ export type SnapshotId = string;
 export type JobId = string;
 export type RouteId = string;
 export type SolverId =
+  | "nearest_neighbor"
+  | "random_keys"
+  | "ortools"
+  | "pso"
+  | "qpso"
+  | "qrg_qpso"
+  | "admr_qpso"
+  | "aco"
+  | "aco_local_search"
+  | "qaco_rotation"
+  | "qaco_interference"
+  | "qaco_tunneling"
+  | "qaco_adaptive"
+  | "qaco_full"
+  | "classical_fusion"
+  | "dynamic_qaco"
   | "dijkstra"
   | "astar"
   | "greedy_fleet"

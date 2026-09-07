@@ -11,7 +11,7 @@ export function OptimizationPipeline() {
           End-to-end optimization pipeline
         </h2>
         <p className="text-[15px] text-text-secondary mt-1 max-w-[65ch]">
-          The engine coordinates specialized agents to decouple graph preprocessing, candidate
+          The engine coordinates bounded services to decouple graph preprocessing, candidate
           generation, combinatorial reconciliation, and hard validation.
         </p>
       </div>

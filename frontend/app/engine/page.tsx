@@ -188,8 +188,8 @@ export default function EnginePage() {
             Why this solver path?
           </h2>
           <p className="text-[15px] text-text-secondary mt-1 max-w-[65ch] leading-relaxed">
-            The selected path begins with QACO candidate generation because this illustrative scenario
-            is a constrained VRPTW instance with a reduced synthetic graph. OR-Tools remains
+            The selected path begins with QACO candidate generation because this demo scenario
+            is a constrained VRPTW instance with a GAT-scored Bengaluru graph. OR-Tools remains
             available as the classical fallback. The final route must pass the independent validator
             before it can be marked FEASIBLE.
           </p>
@@ -199,11 +199,11 @@ export default function EnginePage() {
           <div className="space-y-2.5 text-[13px] font-mono divide-y divide-hairline">
             <div className="flex justify-between py-1.5">
               <span className="text-text-secondary">Selected solver:</span>
-              <span className="text-accent-quantum font-medium">qaco_local</span>
+              <span className="text-accent-quantum font-medium">qaco_full</span>
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-text-secondary">Fallback solver:</span>
-              <span className="text-accent-classical font-medium">ortools_vrptw</span>
+              <span className="text-accent-classical font-medium">ortools</span>
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-text-secondary">Random seed:</span>
@@ -211,7 +211,7 @@ export default function EnginePage() {
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-text-secondary">Input snapshot:</span>
-              <span className="text-text-primary">synthetic-urban-042</span>
+              <span className="text-text-primary">bengaluru-historical-derived-16</span>
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-text-secondary">Objective profile:</span>
@@ -223,7 +223,7 @@ export default function EnginePage() {
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-text-secondary">Result status:</span>
-              <span className="text-accent-quantum font-medium">BEST_FOUND</span>
+              <span className="text-accent-quantum font-medium">FEASIBLE</span>
             </div>
           </div>
         </div>

@@ -16,3 +16,5 @@ data/artifacts/
 ADMR_QPSO_VND_IMPLEMENTATION_SPEC.md
 jarvis-frontend-main/
 autogenerate
+docs/
+graphify-out

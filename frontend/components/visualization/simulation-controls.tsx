@@ -31,6 +31,8 @@ interface SimulationControlsProps {
   onSelectTraffic: (id: string) => void;
   selectedObjectiveId: string;
   onSelectObjective: (id: string) => void;
+  gatEnabled: boolean;
+  onToggleGat: (enabled: boolean) => void;
   simulationState: "idle" | "running" | "done";
   onRunSimulation: () => void;
   onStopSimulation: () => void;
@@ -51,6 +53,8 @@ export function SimulationControls({
   onSelectTraffic,
   selectedObjectiveId,
   onSelectObjective,
+  gatEnabled,
+  onToggleGat,
   simulationState,
   onRunSimulation,
   onStopSimulation,
@@ -75,7 +79,7 @@ export function SimulationControls({
           Scenario configuration
         </h2>
         <p className="text-[13px] text-text-secondary mt-1">
-          Synthetic parameters for the optimization run.
+          Historical traffic inputs with simulated industrial demand.
         </p>
       </div>
 
@@ -108,7 +112,7 @@ export function SimulationControls({
         <label className="text-[13px] font-medium text-text-primary block font-sans">
           Routing mode
         </label>
-        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Routing mode">
+        <div className="grid grid-cols-1 gap-2" role="radiogroup" aria-label="Routing mode">
           {ROUTING_MODES.map((m) => {
             const isSelected = selectedMode === m.id;
             return (
@@ -206,6 +210,22 @@ export function SimulationControls({
         </select>
       </div>
 
+      <label className="flex items-start gap-3 p-3 rounded-md border border-hairline bg-ink-base cursor-pointer">
+        <input
+          type="checkbox"
+          checked={gatEnabled}
+          disabled={simulationState === "running"}
+          onChange={(event) => onToggleGat(event.target.checked)}
+          className="mt-0.5 accent-[var(--accent-quantum)]"
+        />
+        <span>
+          <span className="text-[13px] font-medium text-text-primary block">GAT search prior</span>
+          <span className="text-[11px] text-text-secondary block mt-0.5">
+            Seeds QPSO particles or biases ant transition probabilities before optimization.
+          </span>
+        </span>
+      </label>
+
       {/* Objective Profile */}
       <div className="space-y-2">
         <label
@@ -278,7 +298,7 @@ export function SimulationControls({
         <div className="flex justify-between">
           <span className="text-text-secondary">elapsed:</span>
           <span className="text-text-primary">
-            {elapsedSec > 0 ? `00:0${elapsedSec}s` : "—"}
+            {elapsedSec > 0 ? `${elapsedSec.toFixed(2)}s` : "—"}
           </span>
         </div>
         <div className="flex justify-between">
