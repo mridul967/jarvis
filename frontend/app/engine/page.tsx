@@ -2,6 +2,7 @@ import React from "react";
 import { CheckCircle2, ShieldCheck, Cpu } from "lucide-react";
 import { OptimizationPipeline } from "../../components/engine/optimization-pipeline";
 import { SolverPortfolio } from "../../components/engine/solver-portfolio";
+import { GATInferencePanel } from "../../components/visualization/gat-inference-panel";
 import {
   DEFAULT_OBJECTIVE_WEIGHTS,
   ENGINE_METRICS_PREVIEW,
@@ -30,6 +31,11 @@ export default function EnginePage() {
           a unified schema.
         </p>
       </div>
+
+      {/* GAT Graph Preprocessing — runs before the optimizer pipeline */}
+      <section className="border-t border-hairline pt-12">
+        <GATInferencePanel />
+      </section>
 
       {/* Pipeline Section */}
       <section className="border-t border-hairline pt-12">
