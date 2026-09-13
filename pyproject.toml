@@ -6,8 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.116",
-    "jax>=0.11.1",
-    "jaxlib>=0.11.1",
     "matplotlib>=3.11.1",
     "networkx>=3.3",
     "numpy>=2.2",
@@ -15,13 +13,8 @@ dependencies = [
     "pandas>=3.0.5",
     "scikit-learn>=1.9.0",
     "scipy>=1.18.1",
-    "torch>=2.3",
-    "torch_geometric>=2.5",
     "uvicorn[standard]>=0.35",
 ]
-
-[dependency-groups]
-dev = ["pytest>=8.4", "httpx>=0.28", "ruff>=0.15"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
