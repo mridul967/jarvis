@@ -8,7 +8,7 @@ type SimulationResult = {
   seed: number;
   graph: SimulationGraph;
   frames: SimulationFrame[];
-  events: { vehicle_id: string; engine: string; selected_offer: { route: string[]; predicted_arrival_s: number } }[];
+  events: { vehicle_id: string; engine: string; prediction: { predicted_pressure: number }; selected_offer: { route: string[]; predicted_arrival_s: number } }[];
   vrp_source: { dimension?: number; capacity?: number };
 };
 
@@ -95,7 +95,7 @@ export default function VisualizePage() {
           </div>
           {selectedVehicle && (
             <div className="rounded-md border border-hairline bg-ink-panel p-4 text-sm text-text-secondary">
-              <span className="font-mono text-text-primary">{selectedVehicle}</span>{selectedEvent ? ` · ${selectedEvent.engine} chose ${selectedEvent.selected_offer.route.join(" → ")} (ETA ${Math.round(selectedEvent.selected_offer.predicted_arrival_s)}s)` : " · no route offer yet"}
+              <span className="font-mono text-text-primary">{selectedVehicle}</span>{selectedEvent ? ` · ${selectedEvent.engine} chose ${selectedEvent.selected_offer.route.join(" → ")} (ETA ${Math.round(selectedEvent.selected_offer.predicted_arrival_s)}s, predicted pressure ${selectedEvent.prediction.predicted_pressure})` : " · no route offer yet"}
             </div>
           )}
         </div>

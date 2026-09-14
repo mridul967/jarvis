@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
@@ -16,11 +17,22 @@ class SimulationCreateRequest(BaseModel):
     ticks: int = Field(30, ge=1, le=60)
 
 
+class OSMImportRequest(BaseModel):
+    place: str = Field("Koramangala, Bengaluru, India", min_length=3, max_length=200)
+
+
 @router.post("", status_code=201)
 def create_simulation(payload: SimulationCreateRequest) -> dict:
     result = SimulationEngine(payload.seed, payload.vehicle_count, payload.ticks).run()
     _runs[result["run_id"]] = result
     return _summary(result)
+
+
+@router.post("/imports/osm", status_code=201)
+def import_osm(payload: OSMImportRequest) -> dict:
+    from backend.simulation.osm import import_district
+
+    return import_district(payload.place)
 
 
 @router.post("/jobs", status_code=202)
@@ -51,6 +63,19 @@ def events(run_id: str, limit: Annotated[int, Query(ge=1, le=5000)] = 5000) -> l
     if result is None:
         raise HTTPException(status_code=404, detail="Simulation run not found in this API process")
     return result["events"][:limit]
+
+
+@router.post("/{run_id}/neo4j")
+def export_to_neo4j(run_id: str) -> dict:
+    result = _runs.get(run_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Simulation run not found in this API process")
+    try:
+        from backend.simulation.neo4j_export import export_audit
+
+        return {"run_id": run_id, "events_exported": export_audit(Path(result["audit_path"]), run_id)}
+    except ValueError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 def _summary(result: dict) -> dict:

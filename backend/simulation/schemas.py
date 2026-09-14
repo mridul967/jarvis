@@ -14,6 +14,17 @@ class NodeAgent:
     last_decision_at: float = 0.0
 
 
+@dataclass(frozen=True)
+class AgentMessage:
+    sender: str
+    recipient: str
+    tick: int
+    queue_length: float
+    occupancy: float
+    predicted_pressure: float
+    active_shocks: tuple[str, ...]
+
+
 @dataclass
 class VehicleState:
     vehicle_id: str

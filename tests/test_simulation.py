@@ -21,4 +21,6 @@ def test_incident_creates_active_shock_and_audit(tmp_path, monkeypatch):
     audit = Path(result["audit_path"])
     lines = [json.loads(line) for line in audit.read_text().splitlines()]
     assert lines[0]["event_type"] == "negotiation_decision"
+    assert lines[0]["neighbor_messages"]
+    assert lines[0]["prediction"]["model"] == "heuristic_pressure_v1"
     assert all(line["run_id"] == result["run_id"] for line in lines)

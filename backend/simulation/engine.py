@@ -8,7 +8,7 @@ import uuid
 
 import networkx as nx
 
-from backend.simulation.agents import create_agents
+from backend.simulation.agents import create_agents, neighbor_messages
 from backend.simulation.audit import JsonlAuditWriter
 from backend.simulation.generator import generate_vehicles
 from backend.simulation.graph import build_bengaluru_graph, load_vrp_metadata
@@ -44,6 +44,7 @@ class SimulationEngine:
             state.active_shocks = [shock.shock_id for shock in active]
             flows = self._flows(state.vehicles)
             edge_state = self._edge_state(flows, active)
+            self._update_agents(state.agents, state.vehicles, edge_state, active)
             for vehicle in state.vehicles.values():
                 if vehicle.status == "arrived" or state.timestamp_s < vehicle.available_from:
                     continue
@@ -52,7 +53,7 @@ class SimulationEngine:
                     if event:
                         all_events.append(event)
                 self._move(vehicle, edge_state)
-            self._update_agents(state.agents, state.vehicles, edge_state)
+            self._update_agents(state.agents, state.vehicles, edge_state, active)
             frames.append(self._frame(state, edge_state))
         return {
             "run_id": run_id,
@@ -116,7 +117,8 @@ class SimulationEngine:
         selected = choose_offer(front)
         vehicle.route, vehicle.status = selected.route, "rerouting" if selected.route != vehicle.route else "moving"
         vehicle.current_edge = f"{vehicle.route[0]}>{vehicle.route[1]}" if len(vehicle.route) > 1 else "arrived"
-        payload = audit.write({"run_id": run_id, "tick": state.tick, "timestamp_s": state.timestamp_s, "event_type": "negotiation_decision", "sender": origin, "recipients": list(state.agents[origin].neighbors), "vehicle_id": vehicle.vehicle_id, "offers_considered": len(offers), "pareto_offers": len(front), "selected_offer": asdict(selected), "utility_before": {}, "utility_after": {"arrival_s": selected.predicted_arrival_s, "queue": selected.predicted_queue}, "reason_codes": ["lower_spillback" if selected.spillback_risk == 0 else "avoid_incident", "deterministic_tiebreak"], "engine": engine_name, "seed": self.seed})
+        agent = state.agents[origin]
+        payload = audit.write({"run_id": run_id, "tick": state.tick, "timestamp_s": state.timestamp_s, "event_type": "negotiation_decision", "sender": origin, "recipients": list(agent.neighbors), "neighbor_messages": [asdict(message) for message in neighbor_messages(agent, state.tick, state.active_shocks)], "prediction": {"model": "heuristic_pressure_v1", "predicted_pressure": agent.predicted_pressure}, "vehicle_id": vehicle.vehicle_id, "offers_considered": len(offers), "pareto_offers": len(front), "selected_offer": asdict(selected), "utility_before": {}, "utility_after": {"arrival_s": selected.predicted_arrival_s, "queue": selected.predicted_queue}, "reason_codes": ["lower_spillback" if selected.spillback_risk == 0 else "avoid_incident", "deterministic_tiebreak"], "negotiation_policy": "pareto_lexicographic_v1", "engine": engine_name, "seed": self.seed})
         return payload
 
     def _move(self, vehicle: VehicleState, edge_state: dict[str, dict]) -> None:
@@ -134,13 +136,18 @@ class SimulationEngine:
             else:
                 vehicle.current_edge = f"{vehicle.current_node}>{vehicle.route[next_index + 1]}"
 
-    def _update_agents(self, agents: dict[str, NodeAgent], vehicles: dict[str, VehicleState], edges: dict[str, dict]) -> None:
+    def _update_agents(self, agents: dict[str, NodeAgent], vehicles: dict[str, VehicleState], edges: dict[str, dict], active: list[Shock]) -> None:
+        # ponytail: heuristic prediction until a validated GAT checkpoint beats it.
         for agent in agents.values():
             waiting = sum(1 for vehicle in vehicles.values() if vehicle.current_node == agent.node_id and vehicle.status != "arrived")
             outgoing = [data for edge, data in edges.items() if data["source"] == agent.node_id]
             agent.queue_length = float(waiting)
             agent.occupancy = round(sum(item["flow"] for item in outgoing) / max(sum(item["capacity"] for item in outgoing), 1), 3)
             agent.predicted_pressure = round(min(1.0, agent.occupancy + waiting / 10), 3)
+        for agent in agents.values():
+            neighbor_pressure = sum(agents[node].predicted_pressure for node in agent.neighbors) / max(len(agent.neighbors), 1)
+            incident = any(edge in shock.affected_edges for shock in active for edge in (f"{agent.node_id}>{node}" for node in agent.neighbors))
+            agent.predicted_pressure = round(min(1.0, agent.predicted_pressure + 0.5 * neighbor_pressure + 0.3 * incident), 3)
 
     def _graph_payload(self) -> dict:
         return {"nodes": [{"id": node, **{key: data[key] for key in ("latitude", "longitude", "node_type", "signalized", "zone_id")}} for node, data in self.graph.nodes(data=True)], "edges": [{"id": data["edge_id"], "source": source, "target": target, "length_m": data["length_m"], "free_flow_time_s": data["free_flow_time_s"], "capacity_veh_per_hour": data["capacity_veh_per_hour"], "road_class": data["road_class"]} for source, target, data in self.graph.edges(data=True)]}

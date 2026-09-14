@@ -15,6 +15,10 @@ dependencies = [
     "python-dotenv>=1.2.3",
     "scikit-learn>=1.9.0",
     "scipy>=1.18.1",
+    "torch>=2.0",
+    "torch-geometric>=2.6",
+    "osmnx>=2.0",
+    "neo4j>=5.0",
     "uvicorn[standard]>=0.35",
 ]
 
