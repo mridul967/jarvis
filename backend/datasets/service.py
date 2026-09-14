@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from backend.core.artifacts import sha256, write_artifact
+from backend.app.core.artifacts import sha256, write_artifact
 from backend.datasets.importers import parse_dataset
 from backend.datasets.model import DatasetImport, DatasetVersion, ParsedDataset
 from backend.datasets.repository import save_dataset

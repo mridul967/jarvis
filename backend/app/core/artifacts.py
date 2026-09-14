@@ -3,7 +3,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from backend.core.config import settings
+from backend.app.core.config import settings
 
 
 def sha256(content: bytes) -> str:

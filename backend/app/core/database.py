@@ -2,7 +2,7 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from backend.core.config import settings
+from backend.app.core.config import settings
 
 
 @contextmanager

@@ -1,7 +1,7 @@
 from typing import Literal
 
-from backend.optimizers.model import EvaluationBudget, SolverParameters
-from backend.optimizers.registry import get_solver
+from backend.app.optimizers.model import EvaluationBudget, SolverParameters
+from backend.app.optimizers.registry import get_solver
 from backend.vrptw.evaluate import Score
 from backend.vrptw.parser import parse_solomon
 

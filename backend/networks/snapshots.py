@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from math import isfinite
 from typing import Any
 
-from backend.core.artifacts import read_artifact, sha256, write_artifact
-from backend.core.config import settings
-from backend.core.database import connection, initialize_database
+from backend.app.core.artifacts import read_artifact, sha256, write_artifact
+from backend.app.core.config import settings
+from backend.app.core.database import connection, initialize_database
 from backend.datasets.repository import get_dataset
 from backend.networks import ors
 

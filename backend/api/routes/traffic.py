@@ -10,7 +10,7 @@ from backend.api.schemas import (
     TrafficScenarioResponse,
     TrafficScenarioValidationResponse,
 )
-from backend.core.artifacts import sha256
+from backend.app.core.artifacts import sha256
 from backend.traffic.model import (
     ArcCongestion,
     ArcMultiplier,

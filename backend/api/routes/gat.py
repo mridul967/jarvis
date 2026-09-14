@@ -9,9 +9,15 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.app.gat import inference as gat
-
 router = APIRouter(prefix="/gat", tags=["gat"])
+
+
+def _gat_module():
+    try:
+        from backend.app.gat import inference as gat
+    except ImportError as error:
+        raise HTTPException(status_code=503, detail="GAT is optional and its PyTorch dependencies are not installed") from error
+    return gat
 
 
 # ---- Request / Response schemas -----------------------------------------
@@ -41,6 +47,8 @@ class GATInferResponse(BaseModel):
     search_space_trained: bool | None = None
     predicted_weights: list[float] | None = None
     edge_weight_trained: bool | None = None
+    search_space_confidence: float | None = None
+    edge_weight_confidence: float | None = None
 
 
 # ---- Endpoints ----------------------------------------------------------
@@ -50,6 +58,7 @@ def infer(req: GATInferRequest) -> GATInferResponse:
     """Run GAT forward pass. Returns edge probability scores and/or predicted
     edge weights depending on `mode`. `*_trained=False` means the model is
     running with random-init weights — upload a checkpoint and call /reload."""
+    gat = _gat_module()
     n_edges = len(req.edge_index)
     if len(req.edge_features) != n_edges:
         raise HTTPException(
@@ -74,10 +83,10 @@ def infer(req: GATInferRequest) -> GATInferResponse:
 def reload() -> dict:
     """Hot-reload checkpoints from disk. Call after dropping new .pt files
     into data/artifacts/gat_checkpoints/."""
-    return gat.reload_checkpoints()
+    return _gat_module().reload_checkpoints()
 
 
 @router.get("/status")
 def status() -> dict:
     """Returns checkpoint presence and whether each model has trained weights."""
-    return gat.reload_checkpoints()
+    return _gat_module().reload_checkpoints()

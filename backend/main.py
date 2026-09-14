@@ -4,8 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.router import api_router
-from backend.core.config import settings
-from backend.core.database import check_database, initialize_database
+from backend.app.core.config import settings
+from backend.app.core.database import check_database, initialize_database
 
 
 @asynccontextmanager
