@@ -79,6 +79,14 @@ export const VISUALIZER_ALGORITHMS: AlgorithmOption[] = [
     description: "Capacity and time-window control from the research comparison notebook.",
   },
   {
+    id: "dynamic_ors",
+    name: "OR-Tools (Dynamic ORS)",
+    family: "Constraint Programming",
+    accent: "teal",
+    badge: "Dynamic",
+    description: "Live distance and duration matrix fetching via OpenRouteService API.",
+  },
+  {
     id: "pso",
     name: "Classical PSO",
     family: "Particle Swarm",

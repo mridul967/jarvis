@@ -38,9 +38,16 @@ def scenario(
     return scenario_response(traffic)
 
 
+from backend.app.services.or_tools import run_dynamic_or_tools
+import os
+
 @router.post("/run")
 def run(request: DemoRunRequest) -> dict:
     try:
+        if request.algorithm == "dynamic_ors":
+            matrix_limit = int(os.getenv("ORS_MATRIX_LIMIT", "4"))
+            return run_dynamic_or_tools(matrix_limit, request.traffic, request.seed)
+            
         return run_demo(
             algorithm=request.algorithm,
             traffic=request.traffic,

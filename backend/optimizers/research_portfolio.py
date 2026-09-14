@@ -77,6 +77,14 @@ ALGORITHMS: dict[str, AlgorithmSpec] = {
         ("capacity dimension", "time windows", "guided local search"),
         "GAT_SA_ADMR_QPSO_on_synthetic_dataset_across_Google_OR_tools",
     ),
+    "dynamic_ors": AlgorithmSpec(
+        "dynamic_ors",
+        "OR-Tools (Dynamic ORS)",
+        "constraint_programming",
+        False,
+        ("capacity dimension", "time windows", "guided local search", "dynamic distance matrix"),
+        "or_tools.py",
+    ),
     "pso": AlgorithmSpec(
         "pso",
         "Classical PSO",
