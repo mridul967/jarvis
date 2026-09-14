@@ -4,6 +4,11 @@ Run from the repository root with:
     python scripts/generate_demo_fixture.py
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from backend.simulation.engine import SimulationEngine
 
 

@@ -18,6 +18,7 @@ export type SolverId =
   | "nearest_neighbor"
   | "random_keys"
   | "ortools"
+  | "dynamic_ors"
   | "pso"
   | "qpso"
   | "qrg_qpso"
