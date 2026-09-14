@@ -9,6 +9,18 @@
 
 ## Overview
 
+## Run the simulation
+
+From the repository root, start the FastAPI backend and Next.js frontend together:
+
+```bash
+just dev
+```
+
+Then open http://localhost:3000/visualize. The synthetic simulation needs no API key.
+
+`ORS_API_KEY` is only for the optional live OpenRouteService workflow; Neo4j credentials are only for audit export.
+
 Modern urban transportation systems face major challenges such as traffic congestion, inefficient route planning, high fuel consumption, and increased operational costs. Classical optimization methods often struggle with large-scale Vehicle Routing Problems (VRP) and dynamic shortest-path problems due to their NP-hard nature and rapidly changing traffic conditions.
 
 This repository implements a **Quantum-Inspired Metaheuristic Optimization Framework** for intelligent traffic route optimization. The framework models the transportation network as a weighted graph and uses quantum-inspired algorithms to generate near-optimal vehicle routes under real-time or simulated traffic conditions.

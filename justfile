@@ -52,13 +52,13 @@ dev:
     echo "▶ backend  → http://localhost:8000  (API docs at http://localhost:8000/docs)"
     echo "▶ frontend → http://localhost:3000  (Interactive simulation & UI)"
     trap 'kill 0' EXIT
-    uv run uvicorn backend.main:app --reload --port 8000 &
+    uv run uvicorn backend.main:app --reload --reload-exclude 'data/artifacts/*' --port 8000 &
     ( cd frontend && bun run dev ) &
     wait
 
 # Backend only — FastAPI on http://localhost:8000
 backend:
-    uv run uvicorn backend.main:app --reload --port 8000
+    uv run uvicorn backend.main:app --reload --reload-exclude 'data/artifacts/*' --port 8000
 
 # Frontend only — Next.js with Bun on http://localhost:3000
 frontend:

@@ -54,15 +54,16 @@ export default function VisualizePage() {
       });
       const summary = await created.json();
       if (!created.ok) throw new Error(summary.detail ?? "Could not create simulation");
-      const replay = await fetch(`/api/simulations/${summary.run_id}`);
-      const next = await replay.json();
-      if (!replay.ok) throw new Error(next.detail ?? "Could not load simulation replay");
+      const replay = summary.frames ? null : await fetch(`/api/simulations/${summary.run_id}`);
+      const next = replay ? await replay.json() : summary;
+      if (replay && !replay.ok) throw new Error(next.detail ?? "Could not load simulation replay");
       setResult(next);
       setFrameIndex(0);
       setSelectedVehicle(null);
       setPlaying(true);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not load simulation");
+      const message = cause instanceof Error ? cause.message : "Could not load simulation";
+      setError(message.includes("Backend proxy failed") || message.includes("fetch failed") ? "Simulation backend is not running. From the repository root, run: just dev" : message);
     } finally {
       setLoading(false);
     }

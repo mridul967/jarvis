@@ -25,7 +25,7 @@ class OSMImportRequest(BaseModel):
 def create_simulation(payload: SimulationCreateRequest) -> dict:
     result = SimulationEngine(payload.seed, payload.vehicle_count, payload.ticks).run()
     _runs[result["run_id"]] = result
-    return _summary(result)
+    return result
 
 
 @router.post("/imports/osm", status_code=201)
