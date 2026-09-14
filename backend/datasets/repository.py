@@ -1,7 +1,7 @@
 import json
 import sqlite3
 
-from backend.core.database import connection, initialize_database
+from backend.app.core.database import connection, initialize_database
 from backend.datasets.model import DatasetVersion
 
 

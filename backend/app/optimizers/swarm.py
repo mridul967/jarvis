@@ -4,7 +4,7 @@ from typing import Literal
 
 import numpy as np
 
-from backend.optimizers.model import CancelCheck, ConvergencePoint, EvaluationBudget
+from backend.app.optimizers.model import CancelCheck, ConvergencePoint, EvaluationBudget
 from backend.vrptw.evaluate import Score
 
 Objective = Callable[[np.ndarray], Score]

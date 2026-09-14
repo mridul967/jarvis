@@ -120,6 +120,7 @@ def infer(
             for u, edges in reduced.items()
         }
         result["search_space_trained"] = state.trained
+        result["search_space_confidence"] = 1.0 if state.trained else 0.0
 
     if mode in ("edge_weight", "both"):
         state = _get_ew()
@@ -128,5 +129,6 @@ def infer(
             weights = state.model(x, ei, ea)
         result["predicted_weights"] = weights.tolist()
         result["edge_weight_trained"] = state.trained
+        result["edge_weight_confidence"] = 1.0 if state.trained else 0.0
 
     return result

@@ -1,6 +1,6 @@
 import json
 
-from backend.core.database import connection, initialize_database
+from backend.app.core.database import connection, initialize_database
 
 
 def save_run(result: dict) -> int:

@@ -6,7 +6,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-from backend.core.config import settings
+from backend.app.core.config import settings
 
 ORS_PROFILES = frozenset(
     {

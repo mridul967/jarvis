@@ -2,8 +2,8 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
-from backend.core.artifacts import read_artifact, write_artifact
-from backend.core.database import connection, initialize_database
+from backend.app.core.artifacts import read_artifact, write_artifact
+from backend.app.core.database import connection, initialize_database
 from backend.traffic.model import (
     ArcCongestion,
     ArcMultiplier,
