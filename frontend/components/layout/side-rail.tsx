@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Waypoints, Cpu } from "lucide-react";
+import { LayoutDashboard, Waypoints, Cpu, ScrollText } from "lucide-react";
 
 export interface NavItem {
   name: string;
@@ -31,6 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Cpu,
     accent: "amber",
   },
+  { name: "Audit", href: "/audit", icon: ScrollText, accent: "teal" },
 ];
 
 export function SideRail() {

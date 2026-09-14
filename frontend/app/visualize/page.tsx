@@ -58,6 +58,7 @@ export default function VisualizePage() {
       const next = replay ? await replay.json() : summary;
       if (replay && !replay.ok) throw new Error(next.detail ?? "Could not load simulation replay");
       setResult(next);
+      window.localStorage.setItem("latestSimulationRunId", next.run_id);
       setFrameIndex(0);
       setSelectedVehicle(null);
       setPlaying(true);

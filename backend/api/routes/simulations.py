@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Annotated
 
@@ -9,6 +10,7 @@ from backend.simulation import jobs
 
 router = APIRouter(prefix="/simulations", tags=["simulations"])
 _runs: dict[str, dict] = {}
+_AUDIT_ROOT = Path("data/artifacts/simulations")
 
 
 class SimulationCreateRequest(BaseModel):
@@ -33,6 +35,14 @@ def import_osm(payload: OSMImportRequest) -> dict:
     from backend.simulation.osm import import_district
 
     return import_district(payload.place)
+
+
+@router.get("/audits")
+def audits(limit: Annotated[int, Query(ge=1, le=100)] = 20) -> list[dict]:
+    records = []
+    for path in sorted(_AUDIT_ROOT.glob("run-*/events.jsonl"), key=lambda item: item.stat().st_mtime, reverse=True)[:limit]:
+        records.append({"run_id": path.parent.name, "event_count": sum(1 for _ in path.open(encoding="utf-8")), "updated_at": path.stat().st_mtime})
+    return records
 
 
 @router.post("/jobs", status_code=202)
@@ -60,9 +70,12 @@ def simulation(run_id: str) -> dict:
 @router.get("/{run_id}/events")
 def events(run_id: str, limit: Annotated[int, Query(ge=1, le=5000)] = 5000) -> list[dict]:
     result = _runs.get(run_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="Simulation run not found in this API process")
-    return result["events"][:limit]
+    if result is not None:
+        return result["events"][:limit]
+    path = _AUDIT_ROOT / run_id / "events.jsonl"
+    if not run_id.startswith("run-") or not path.is_file():
+        raise HTTPException(status_code=404, detail="Simulation audit not found")
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()[:limit]]
 
 
 @router.post("/{run_id}/neo4j")
